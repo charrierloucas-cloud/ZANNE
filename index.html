@@ -1,0 +1,249 @@
+  1  <!DOCTYPE html>
+  2  <html lang="fr">
+  3  <head>
+  4  <meta charset="utf-8">
+  5  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  6  <title>StreamKit – Overlays pour lives</title>
+  7  <style>
+  8  :root{color-scheme:dark;--bg:#0d0b16;--card:#17132a;--line:#2b2447;--tx:#ece9f8;--mut:#9a94b8;--ac:#8b5cf6;--ac2:#22d3ee;--ok:#34d399;--err:#f87171;
+  9  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+ 10  *{box-sizing:border-box}
+ 11  body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+ 12  header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:#0d0b16ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:16px;padding:12px 20px;flex-wrap:wrap}
+ 13  .logo{font-weight:800;font-size:20px;background:linear-gradient(90deg,var(--ac),var(--ac2));-webkit-background-clip:text;background-clip:text;color:transparent}
+ 14  nav{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+ 15  nav a{color:var(--mut);text-decoration:none;padding:7px 14px;border-radius:999px;font-size:14px;font-weight:600;border:1px solid transparent}
+ 16  nav a:hover{color:var(--tx)}
+ 17  nav a.on{color:#fff;background:var(--ac);box-shadow:0 0 14px #8b5cf688}
+ 18  main{max-width:980px;margin:0 auto;padding:28px 20px 60px}
+ 19  section{display:none}section.on{display:block}
+ 20  h1{font-size:clamp(28px,6vw,46px);line-height:1.1;margin:10px 0 12px}
+ 21  h2{margin:0 0 16px}
+ 22  p.lead{color:var(--mut);max-width:620px}
+ 23  .btn{display:inline-block;border:0;cursor:pointer;background:linear-gradient(90deg,var(--ac),#6d28d9);color:#fff;font:700 15px inherit;font-family:inherit;padding:12px 22px;border-radius:10px;text-decoration:none}
+ 24  .btn.alt{background:transparent;border:1px solid var(--line);color:var(--tx)}
+ 25  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+ 26  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px}
+ 27  .card h3{margin:10px 0 4px;font-size:17px}.card p{margin:0;color:var(--mut);font-size:14px}
+ 28  .prev{height:150px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;padding:10px;position:relative;overflow:hidden;color:#fff}
+ 29  .pill{background:#000a;border-radius:999px;padding:8px 16px;backdrop-filter:blur(4px)}.pill.big{font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;border-radius:14px}
+ 30  .live{color:#ef4444;animation:bl 1.2s infinite}@keyframes bl{50%{opacity:.2}}
+ 31  .toast{background:#000b;border-left:4px solid #f472b6;border-radius:10px;padding:10px 14px;animation:sl 4s infinite}
+ 32  @keyframes sl{0%,8%{transform:translateX(130%);opacity:0}22%,75%{transform:none;opacity:1}92%,100%{transform:translateX(130%);opacity:0}}
+ 33  .goal{width:88%;background:#000a;border-radius:10px;padding:10px}.bar{height:12px;background:#fff3;border-radius:9px;margin-top:6px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#34d399,#22d3ee);border-radius:9px;animation:gr 4s ease-in-out infinite}
+ 34  @keyframes gr{0%{width:6%}80%,100%{width:92%}}
+ 35  .top{width:86%;background:#000a;border-radius:10px;padding:8px 12px;font-size:13px}.top div{display:flex;justify-content:space-between;padding:2px 0}
+ 36  .chat{width:90%;font-size:13px;text-align:left}.chat div{background:#000a;border-radius:8px;padding:4px 10px;margin:4px 0;animation:fi 6s infinite;opacity:0}.chat div:nth-child(2){animation-delay:1s}.chat div:nth-child(3){animation-delay:2s}
+ 37  @keyframes fi{0%{opacity:0;transform:translateY(8px)}10%,85%{opacity:1;transform:none}100%{opacity:0}}
+ 38  .cam{width:78%;height:82%;border:3px solid #22d3ee;border-radius:12px;display:grid;place-items:center;font-size:34px;animation:gl 2s ease-in-out infinite}
+ 39  @keyframes gl{0%,100%{box-shadow:0 0 6px #22d3ee,inset 0 0 6px #22d3ee;border-color:#22d3ee}50%{box-shadow:0 0 22px #ec4899,inset 0 0 14px #ec4899;border-color:#ec4899}}
+ 40  .trans{width:100%;height:100%;display:grid;place-items:center;font-size:20px;letter-spacing:3px;position:absolute;inset:0;background:#000b}.trans i{position:absolute;top:0;bottom:0;width:35%;background:linear-gradient(90deg,transparent,#fff5,transparent);animation:sw 2.2s linear infinite}
+ 41  @keyframes sw{from{left:-40%}to{left:105%}}
+ 42  .tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:#34d39922;color:var(--ok);margin-top:10px;display:inline-block}
+ 43  .tag.p{background:#8b5cf633;color:#c4b5fd}
+ 44  .price{font-size:44px;font-weight:800}.price small{font-size:16px;color:var(--mut);font-weight:500}
+ 45  .pay{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+ 46  @media(max-width:720px){.pay{grid-template-columns:1fr}}
+ 47  input{width:100%;background:#0d0b16;border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:11px 12px;font:inherit;margin:6px 0 10px}
+ 48  label{font-size:13px;color:var(--mut)}
+ 49  .row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--line)}
+ 50  .msg{font-size:14px;min-height:20px}.ok{color:var(--ok)}.err{color:var(--err)}
+ 51  ol.steps{padding-left:0;list-style:none;counter-reset:s}
+ 52  ol.steps li{counter-increment:s;display:flex;gap:14px;margin-bottom:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+ 53  ol.steps li:before{content:counter(s);flex:none;width:30px;height:30px;border-radius:50%;background:var(--ac);display:grid;place-items:center;font-weight:800}
+ 54  table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:8px;border-bottom:1px solid var(--line);text-align:left}
+ 55  .wrap{overflow-x:auto}
+ 56  code,textarea{font-family:ui-monospace,monospace}
+ 57  textarea{width:100%;min-height:90px;background:#0d0b16;color:var(--ok);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:13px}
+ 58  footer{text-align:center;color:var(--mut);font-size:13px;padding:20px}
+ 59  </style>
+ 60  </head>
+ 61  <body>
+ 62  <header>
+ 63    <span class="logo">⚡ StreamKit</span>
+ 64    <nav id="nav">
+ 65      <a href="#accueil" data-s="accueil">Accueil</a>
+ 66      <a href="#overlays" data-s="overlays">Overlays</a>
+ 67      <a href="#premium" data-s="premium">Premium & paiement</a>
+ 68      <a href="#comment" data-s="comment">Comment ça marche</a>
+ 69      <a href="#admin" data-s="admin">Admin</a>
+ 70    </nav>
+ 71  </header>
+ 72  <main>
+ 73  
+ 74  <section id="accueil">
+ 75    <h1>Des overlays qui font briller<br>tes lives TikTok, YouTube & Twitch</h1>
+ 76    <p class="lead">Compteurs, alertes, barres d’objectifs… Prêts à coller dans OBS en 2 minutes. Passe en Premium pour tout débloquer.</p>
+ 77    <p><a class="btn" href="#premium">Passer Premium – 10,90 €/mois</a> &nbsp; <a class="btn alt" href="#overlays">Voir les overlays</a></p>
+ 78  </section>
+ 79  
+ 80  <section id="overlays">
+ 81    <h2>Catalogue d’overlays</h2>
+ 82    <div class="grid" id="catalog"></div>
+ 83  </section>
+ 84  
+ 85  <section id="premium">
+ 86    <h2>Premium & paiement</h2>
+ 87    <div class="pay">
+ 88      <div class="card">
+ 89        <div class="price">10,90 € <small>/ mois</small></div>
+ 90        <p style="color:var(--mut)">Tous les overlays, mises à jour et nouveautés chaque mois. Résiliable à tout moment.</p>
+ 91        <div class="row"><span>Abonnement Premium</span><span>10,90 €</span></div>
+ 92        <div class="row"><span>Réduction</span><span id="disc">– 0,00 €</span></div>
+ 93        <div class="row"><b>Total</b><b id="total">10,90 €</b></div>
+ 94      </div>
+ 95      <div class="card">
+ 96        <label for="email">Ton e-mail (pour recevoir tes overlays)</label>
+ 97        <input id="email" type="email" placeholder="toi@exemple.com">
+ 98        <label for="promo">Code promo (usage unique)</label>
+ 99        <div style="display:flex;gap:8px"><input id="promo" placeholder="EX : STREAM-AB12CD" style="text-transform:uppercase"><button class="btn alt" id="apply" style="height:44px;margin-top:6px">Appliquer</button></div>
+100        <div class="msg" id="pmsg"></div>
+101        <button class="btn" id="pay" style="width:100%">Payer avec PayPal</button>
+102        <p style="font-size:12px;color:var(--mut);margin-top:10px">Tu es redirigé vers PayPal. Après paiement, tu reçois tes overlays par e-mail.</p>
+103      </div>
+104    </div>
+105  </section>
+106  
+107  <section id="comment">
+108    <h2>Comment récupérer tes overlays ?</h2>
+109    <ol class="steps">
+110      <li><div><b>Tu paies</b><br><span style="color:var(--mut)">Via le bouton PayPal de la page Premium, avec ton e-mail et ton code promo si tu en as un.</span></div></li>
+111      <li><div><b>Tu reçois un lien</b><br><span style="color:var(--mut)">Après vérification du paiement, tu reçois par e-mail un lien privé vers tes overlays.</span></div></li>
+112      <li><div><b>Tu l’ajoutes dans OBS</b><br><span style="color:var(--mut)">Sources → « + » → Navigateur → colle le lien. Règle la taille, c’est prêt.</span></div></li>
+113      <li><div><b>Tu lances ton live</b><br><span style="color:var(--mut)">Les overlays se mettent à jour tout seuls, pour TikTok, YouTube ou Twitch.</span></div></li>
+114    </ol>
+115  </section>
+116  
+117  <section id="admin">
+118    <h2>Espace admin – codes promo</h2>
+119    <div class="card" id="lock">
+120      <label for="pw">Mot de passe admin</label>
+121      <input id="pw" type="password" placeholder="••••••••">
+122      <button class="btn" id="unlock">Entrer</button> <span class="msg err" id="lmsg"></span>
+123    </div>
+124    <div id="panel" style="display:none">
+125      <div class="card" style="margin-bottom:14px">
+126        <b>Générer des codes (illimité, 1 code = 1 personne)</b>
+127        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+128          <div><label for="gn">Nombre de codes</label><input id="gn" type="number" min="1" max="500" value="10"></div>
+129          <div><label for="gp">Réduction (%)</label><input id="gp" type="number" min="1" max="100" value="20"></div>
+130        </div>
+131        <button class="btn" id="gen">Générer</button>
+132        <p class="msg" style="color:var(--mut)">Copie le résultat ci-dessous et colle-le dans <code>const CODES=[…]</code> en haut du script du fichier, puis republie le site.</p>
+133        <textarea id="out" readonly></textarea>
+134      </div>
+135      <div class="card wrap"><b>Codes actuels</b>
+136        <table><thead><tr><th>Code</th><th>Réduc.</th><th>Statut</th></tr></thead><tbody id="rows"></tbody></table>
+137      </div>
+138    </div>
+139  </section>
+140  
+141  </main>
+142  <footer>© StreamKit – Overlays pour streamers</footer>
+143  
+144  <script>
+145  /* ===== À PERSONNALISER ===== */
+146  const LoucasChartier = "https://www.paypal.me/LoucasChartier"; // ← ton lien PayPal.me
+147  const Loucas2011! = "change-moi";                  // ← mot de passe de l’espace admin
+148  const PRICE = 10.90;
+149  // Un code = une personne. Format : {c:"CODE", p:pourcentage}
+150  const CODES = [
+    {c:"ZANE", p:100}
+    ];
+151    {c:"STREAM-BIENVENUE", p:20},
+152    {c:"STREAM-AMI50", p:50}
+153  ];
+154  /* =========================== */
+155  
+156  const $ = id => document.getElementById(id);
+157  const eur = n => n.toFixed(2).replace(".", ",") + " €";
+158  const OV = [
+159    ["Compteur de viewers","Affiche tes spectateurs en direct, style minimaliste.","linear-gradient(135deg,#8b5cf6,#22d3ee)",0],
+160    ["Alertes de followers","Animation à chaque nouveau follower ou abonné.","linear-gradient(135deg,#ec4899,#f59e0b)",1],
+161    ["Barre d’objectif","Objectif de likes, followers ou dons avec progression.","linear-gradient(135deg,#10b981,#22d3ee)",0],
+162    ["Top donateurs","Classement animé de tes meilleurs supporters.","linear-gradient(135deg,#f59e0b,#ef4444)",1],
+163    ["Chat à l’écran","Chat stylisé qui s’intègre à ta scène.","linear-gradient(135deg,#6366f1,#8b5cf6)",1],
+164    ["Cadre webcam","Cadre néon animé autour de ta caméra.","linear-gradient(135deg,#22d3ee,#6366f1)",0],
+165    ["Timer & compte à rebours","Pour tes défis, ouvertures de live et giveaways.","linear-gradient(135deg,#ef4444,#ec4899)",1],
+166    ["Écrans de transition","Début, pause et fin de live avec style.","linear-gradient(135deg,#0ea5e9,#8b5cf6)",1]
+167  ];
+168  const PV = [
+169   `<div class="pill"><span class="live">●</span> <b class="vc">1 248</b> viewers</div>`,
+170   `<div class="toast">🎉 <b>Léa</b> vient de te suivre !</div>`,
+171   `<div class="goal"><small>Objectif : 1 000 likes</small><div class="bar"><i></i></div></div>`,
+172   `<div class="top"><div>🥇 Max <b>50 €</b></div><div>🥈 Sana <b>25 €</b></div><div>🥉 Tom <b>10 €</b></div></div>`,
+173   `<div class="chat"><div><b style="color:#f472b6">Nina</b> trop fort !</div><div><b style="color:#22d3ee">Yass</b> gg 🔥</div><div><b style="color:#facc15">Léo</b> je follow</div></div>`,
+174   `<div class="cam">📷</div>`,
+175   `<div class="pill big tm">05:00</div>`,
+176   `<div class="trans"><b>LIVE BIENTÔT</b><i></i></div>`
+177  ];
+178  $("catalog").innerHTML = OV.map((o, i) => `<div class="card"><div class="prev" style="background:${o[2]}">${PV[i]}</div><h3>${o[0]}</h3><p>${o[1]}</p><span class="tag ${o[3]?"p":""}">${o[3]?"Premium":"Gratuit"}</span></div>`).join("");
+179  let vv = 1248, tt = 300;
+180  setInterval(() => {
+181   vv += Math.round(Math.random() * 14 - 5);
+182   document.querySelectorAll(".vc").forEach(e => e.textContent = vv.toLocaleString("fr-FR"));
+183   tt = tt > 0 ? tt - 1 : 300;
+184   const t = String(Math.floor(tt / 60)).padStart(2, "0") + ":" + String(tt % 60).padStart(2, "0");
+185   document.querySelectorAll(".tm").forEach(e => e.textContent = t);
+186  }, 1000);
+187  
+188  /* Navigation : la section active est allumée */
+189  function go(){
+190    let s = (location.hash || "#accueil").slice(1);
+191    if (!$(s)) s = "accueil";
+192    document.querySelectorAll("section").forEach(e => e.classList.toggle("on", e.id === s));
+193    document.querySelectorAll("#nav a").forEach(a => a.classList.toggle("on", a.dataset.s === s));
+194    window.scrollTo(0, 0);
+195  }
+196  addEventListener("hashchange", go); go();
+197  
+198  /* Codes déjà utilisés (mémorisés dans ce navigateur) */
+199  function used(){ try { return JSON.parse(localStorage.getItem("used") || "[]"); } catch(e){ return []; } }
+200  function markUsed(c){ try { const u = used(); u.push(c); localStorage.setItem("used", JSON.stringify(u)); } catch(e){} }
+201  
+202  let applied = null;
+203  function total(){
+204    const d = applied ? PRICE * applied.p / 100 : 0;
+205    $("disc").textContent = "– " + eur(d);
+206    $("total").textContent = eur(PRICE - d);
+207    return PRICE - d;
+208  }
+209  $("apply").onclick = () => {
+210    const v = $("promo").value.trim().toUpperCase(), m = $("pmsg");
+211    const f = CODES.find(x => x.c === v);
+212    applied = null;
+213    if (!f) { m.className = "msg err"; m.textContent = "Code invalide."; }
+214    else if (used().includes(v)) { m.className = "msg err"; m.textContent = "Ce code a déjà été utilisé."; }
+215    else { applied = f; m.className = "msg ok"; m.textContent = "Code appliqué : –" + f.p + " %"; }
+216    total();
+217  };
+218  $("pay").onclick = () => {
+219    const em = $("email").value.trim();
+220    if (!/^\S+@\S+\.\S+$/.test(em)) { $("pmsg").className = "msg err"; $("pmsg").textContent = "Entre un e-mail valide."; return; }
+221    const t = total();
+222    if (applied) markUsed(applied.c);
+223    window.open(PAYPAL_ME + "/" + t.toFixed(2) + "EUR", "_blank");
+224  };
+225  
+226  /* Admin */
+227  function genCode(){
+228    const a = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; let s = "";
+229    for (let i = 0; i < 6; i++) s += a[Math.floor(Math.random() * a.length)];
+230    return "STREAM-" + s;
+231  }
+232  function rows(){
+233    const u = used();
+234    $("rows").innerHTML = CODES.map(x => `<tr><td><code>${x.c}</code></td><td>${x.p} %</td><td>${u.includes(x.c) ? "Utilisé" : "Disponible"}</td></tr>`).join("");
+235  }
+236  $("unlock").onclick = () => {
+237    if ($("pw").value === ADMIN_PASSWORD) { $("lock").style.display = "none"; $("panel").style.display = "block"; rows(); }
+238    else $("lmsg").textContent = "Mot de passe incorrect.";
+239  };
+240  $("gen").onclick = () => {
+241    const n = Math.min(500, Math.max(1, +$("gn").value || 1)), p = Math.min(100, Math.max(1, +$("gp").value || 10));
+242    const set = new Set(); while (set.size < n) set.add(genCode());
+243    $("out").value = [...set].map(c => `  {c:"${c}", p:${p}},`).join("\n");
+244  };
+245  </script>
+246  </body>
+247  </html>
